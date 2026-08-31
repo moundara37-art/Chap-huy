@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1769e0" />
+  <title>ហាង ពៅមារី • បញ្ជីជំពាក់</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="toast"></div>
+
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-photo"></div>
+      <div class="brand-row">
+        <div class="logo">៛</div>
+        <div><div class="eyebrow">DEBT BOOK</div><div class="brand-name">ហាង ពៅមារី</div></div>
+      </div>
+      <h1>បញ្ជីអ្នកជំពាក់</h1>
+      <p>គ្រប់គ្រងអ្នកជំពាក់ និងប្រវត្តិការជំពាក់បានងាយស្រួល</p>
+      <form id="loginForm">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="your@email.com" autocomplete="username" required>
+        <label>Password</label>
+        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+        <button class="primary full" type="submit">ចូលប្រើ</button>
+      </form>
+      <small>Login នឹងរក្សាទុកជាប់នៅលើឧបករណ៍នេះ</small>
+    </div>
+  </section>
+
+  <main id="app" class="app hidden">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="shop-thumb"></div>
+        <div>
+          <div class="eyebrow light">ហាង • DEBT BOOK</div>
+          <h1>ហាង ពៅមារី</h1>
+          <div class="subtitle">បញ្ជីអ្នកជំពាក់</div>
+        </div>
+      </div>
+      <button id="logoutBtn" class="ghost ghost-light">ចាកចេញ</button>
+    </header>
+
+    <section class="stats">
+      <div class="stat"><span>អ្នកជំពាក់</span><strong id="peopleCount">0</strong></div>
+      <div class="stat"><span>សរុបជំពាក់</span><strong id="totalDebt">0៛</strong></div>
+      <div class="stat"><span>បានសង</span><strong id="totalPaid">0៛</strong></div>
+      <div class="stat highlight"><span>នៅសល់</span><strong id="totalRemain">0៛</strong></div>
+    </section>
+
+    <section class="toolbar">
+      <div class="search"><span>⌕</span><input id="searchInput" placeholder="ស្វែងរកឈ្មោះ ឬលេខទូរស័ព្ទ..." autocomplete="off"></div>
+      <button id="addPersonBtn" class="primary">＋ អ្នកជំពាក់ថ្មី</button>
+    </section>
+
+    <section id="peopleList" class="people-list"></section>
+  </main>
+
+  <dialog id="personDialog">
+    <form id="personForm" class="modal">
+      <div class="modal-head"><div><span class="eyebrow">CUSTOMER</span><h2 id="personModalTitle">អ្នកជំពាក់ថ្មី</h2></div><button type="button" class="icon-btn" data-close>×</button></div>
+      <input type="hidden" id="personId">
+      <label>ឈ្មោះ *</label><input id="personName" required placeholder="ឧ. សុខា">
+      <label>លេខទូរស័ព្ទ</label><input id="personPhone" placeholder="0xx xxx xxx">
+      <label>កំណត់ចំណាំ</label><textarea id="personNote" rows="3" placeholder="ចំណាំបន្ថែម..."></textarea>
+      <button class="primary full" type="submit">រក្សាទុក</button>
+    </form>
+  </dialog>
+
+  <dialog id="debtDialog">
+    <form id="debtForm" class="modal">
+      <div class="modal-head"><div><span class="eyebrow">NEW DEBT</span><h2>បន្ថែមការជំពាក់</h2></div><button type="button" class="icon-btn" data-close>×</button></div>
+      <input type="hidden" id="debtPersonId">
+      <p id="debtPersonName" class="modal-person"></p>
+      <label>មុខទំនិញ *</label><input id="debtItem" required placeholder="ឧ. អង្ករ 5kg">
+      <label>ចំនួនទឹកប្រាក់ (៛) *</label><input id="debtAmount" required type="number" min="1" step="1" inputmode="numeric" placeholder="10000">
+      <label>ថ្ងៃជំពាក់</label><input id="debtDate" type="date">
+      <label>ចំណាំ</label><input id="debtNote" placeholder="ជាជម្រើស">
+      <button class="primary full" type="submit">＋ កត់ត្រាជំពាក់</button>
+    </form>
+  </dialog>
+
+  <dialog id="paymentDialog">
+    <form id="paymentForm" class="modal">
+      <div class="modal-head"><div><span class="eyebrow">PAYMENT</span><h2>កត់ត្រាការសង</h2></div><button type="button" class="icon-btn" data-close>×</button></div>
+      <input type="hidden" id="paymentPersonId">
+      <p id="paymentPersonName" class="modal-person"></p>
+      <div class="remain-box">នៅសល់ <strong id="paymentRemain">0៛</strong></div>
+      <label>ចំនួនសង (៛) *</label><input id="paymentAmount" required type="number" min="1" step="1" inputmode="numeric" placeholder="5000">
+      <label>ថ្ងៃសង</label><input id="paymentDate" type="date">
+      <label>ចំណាំ</label><input id="paymentNote" placeholder="ជាជម្រើស">
+      <button class="primary full" type="submit">✓ កត់ត្រាការសង</button>
+    </form>
+  </dialog>
+
+  <dialog id="historyDialog">
+    <div class="modal wide">
+      <div class="modal-head"><div><span class="eyebrow">HISTORY</span><h2 id="historyTitle">ប្រវត្តិ</h2></div><button type="button" class="icon-btn" data-close>×</button></div>
+      <div id="historyContent"></div>
+    </div>
+  </dialog>
+
+  <dialog id="editTransactionDialog">
+    <form id="editTransactionForm" class="modal">
+      <div class="modal-head">
+        <div><span class="eyebrow">EDIT HISTORY</span><h2 id="editTransactionTitle">កែប្រវត្តិ</h2></div>
+        <button type="button" class="icon-btn" data-close>×</button>
+      </div>
+      <input type="hidden" id="editTransactionId">
+      <input type="hidden" id="editTransactionType">
+      <p id="editTransactionPerson" class="modal-person"></p>
+      <div id="editDebtItemWrap">
+        <label>មុខទំនិញ *</label><input id="editDebtItem" placeholder="ឧ. អង្ករ 5kg">
+      </div>
+      <label>ចំនួនទឹកប្រាក់ (៛) *</label>
+      <input id="editTransactionAmount" required type="number" min="1" step="1" inputmode="numeric" placeholder="10000">
+      <label>ថ្ងៃ</label><input id="editTransactionDate" type="date">
+      <label>ចំណាំ</label><input id="editTransactionNote" placeholder="ជាជម្រើស">
+      <button class="primary full" type="submit">រក្សាទុកការកែប្រែ</button>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
