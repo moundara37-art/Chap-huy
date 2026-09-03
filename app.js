@@ -171,43 +171,12 @@ async function downloadHistoryPdf(){
       ${rows.length?rows.map(x=>`<tr><td>${esc(x.date||"")}</td><td>${x.type==="debt"?`ជំពាក់ • ${esc(x.item||"")}`:"សងប្រាក់"}</td><td>${esc(x.note||"")}</td><td class="pdf-amount">${x.type==="debt"?"+":"-"}${money(x.amount)}</td></tr>`).join(""):`<tr><td colspan="4">មិនទាន់មានប្រវត្តិទេ</td></tr>`}
     </tbody></table>
     <div class="pdf-footer">បង្កើតពី Debt Book • ${esc(shopName)}</div>`;
-  // Keep the PDF sheet inside the viewport while html2canvas captures it.
-  // The previous version placed it at left:-100000px with z-index:-1, which can
-  // make iPhone/Safari capture a completely blank page.
-  sheet.style.position="fixed";
-  sheet.style.left="0";
-  sheet.style.top="0";
-  sheet.style.width="794px";
-  sheet.style.minHeight="1123px";
-  sheet.style.boxSizing="border-box";
-  sheet.style.background="#fff";
-  sheet.style.padding="40px";
-  sheet.style.zIndex="2147483647";
-  sheet.style.opacity="1";
-  sheet.style.visibility="visible";
-  sheet.style.pointerEvents="none";
+  sheet.style.position="absolute";sheet.style.left="0";sheet.style.top="0";sheet.style.width="794px";sheet.style.minHeight="1123px";sheet.style.boxSizing="border-box";sheet.style.background="#fff";sheet.style.padding="40px";sheet.style.zIndex="2147483647";sheet.style.opacity="1";sheet.style.pointerEvents="none";
   document.body.appendChild(sheet);
   try{
-    if(document.fonts?.ready) await document.fonts.ready;
-    await new Promise(requestAnimationFrame);
-    await new Promise(requestAnimationFrame);
-    await html2pdf().set({
-      margin:0,
-      filename:`history-${p.name.replace(/[^\w\u1780-\u17FF-]/g,"_")}.pdf`,
-      image:{type:"jpeg",quality:0.98},
-      html2canvas:{
-        scale:2,
-        useCORS:true,
-        allowTaint:false,
-        backgroundColor:"#ffffff",
-        logging:false,
-        scrollX:0,
-        scrollY:0,
-        windowWidth:794
-      },
-      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
-      pagebreak:{mode:["css","legacy"]}
-    }).from(sheet).save();
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r=>setTimeout(r,150));
+    await html2pdf().set({margin:0,filename:`history-${p.name.replace(/[^\w\u1780-\u17FF-]/g,"_")}.pdf`,image:{type:"jpeg",quality:0.98},html2canvas:{scale:1.5,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,windowWidth:794},jsPDF:{unit:"mm",format:"a4",orientation:"portrait",compress:true},pagebreak:{mode:["css","legacy"]}}).from(sheet).save();
     toast("បានទាញយក PDF រួចរាល់ ✓");
   }catch(err){console.error(err);toast("បង្កើត PDF មិនបាន",false)}
   finally{sheet.remove();btn.disabled=false;btn.textContent="📄 PDF"}
