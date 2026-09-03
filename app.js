@@ -152,17 +152,77 @@ function history(id){
 async function downloadHistoryPdf(){
   const id=currentHistoryPersonId;
   const p=people.find(x=>x.id===id);
-  if(!p||typeof html2pdf==="undefined"){toast("មិនអាចបង្កើត PDF បានទេ",false);return;}
-  const ds=debts.filter(x=>x.customer_id===id), ps=payments.filter(x=>x.customer_id===id);
-  const totalDebt=ds.reduce((a,x)=>a+Number(x.amount||0),0), totalPaid=ps.reduce((a,x)=>a+Number(x.amount||0),0);
-  const rows=[...ds.map(x=>({type:"ជំពាក់",date:x.debt_date,item:x.item,amount:Number(x.amount||0),note:x.note||""})),...ps.map(x=>({type:"សងប្រាក់",date:x.payment_date,item:"ការសងប្រាក់",amount:-Number(x.amount||0),note:x.note||""}))].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const box=document.createElement("div");
-  box.style.cssText="width:180mm;padding:12mm;background:#fff;color:#172033;font-family:Arial,'Noto Sans Khmer',sans-serif;line-height:1.6";
-  box.innerHTML=`<h1 style="margin:0 0 4px;font-size:24px">ប្រវត្តិជំពាក់</h1><h2 style="margin:0 0 14px;font-size:20px">${esc(p.name)}</h2><p>លេខទូរស័ព្ទ៖ ${esc(p.phone||"មិនមាន")}</p><hr><p><b>ជំពាក់សរុប៖</b> ${money(totalDebt)} &nbsp;&nbsp; <b>បានសង៖</b> ${money(totalPaid)} &nbsp;&nbsp; <b>នៅសល់៖</b> ${money(Math.max(0,totalDebt-totalPaid))}</p><hr><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="text-align:left;border-bottom:1px solid #ccc;padding:6px">ប្រភេទ</th><th style="text-align:left;border-bottom:1px solid #ccc;padding:6px">ថ្ងៃ</th><th style="text-align:left;border-bottom:1px solid #ccc;padding:6px">មុខទំនិញ</th><th style="text-align:left;border-bottom:1px solid #ccc;padding:6px">ចំណាំ</th><th style="text-align:right;border-bottom:1px solid #ccc;padding:6px">ចំនួន</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="padding:6px;border-bottom:1px solid #eee">${esc(r.type)}</td><td style="padding:6px;border-bottom:1px solid #eee">${esc(r.date||"")}</td><td style="padding:6px;border-bottom:1px solid #eee">${esc(r.item||"")}</td><td style="padding:6px;border-bottom:1px solid #eee;text-align:right">${r.amount>=0?"+":"-"}${money(Math.abs(r.amount))}</td></tr>`).join("")}</tbody></table><p style="margin-top:18px;color:#777;font-size:11px">បង្កើតពី Debt Book</p>`;
-  document.body.appendChild(box); toast("កំពុងបង្កើត PDF…");
-  try{await html2pdf().set({margin:0,filename:`history-${p.name.replace(/[^a-zA-Z0-9_-]/g,"_")}.pdf`,image:{type:"jpeg",quality:.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#fff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}}).from(box).save();toast("ទាញយក PDF រួចរាល់ ✓");}
-  catch(e){console.error(e);toast("ទាញយក PDF មិនបាន",false);} finally{box.remove();}
+  if(!p){toast("សូមបើក History មុន",false);return}
+  if(typeof html2pdf!="function"){toast("PDF library មិនទាន់ដំណើរការ។ សូម Refresh ម្តងទៀត",false);return}
+
+  const ds=debts.filter(x=>x.customer_id===id);
+  const ps=payments.filter(x=>x.customer_id===id);
+  const totalDebt=ds.reduce((a,x)=>a+Number(x.amount||0),0);
+  const totalPaid=ps.reduce((a,x)=>a+Number(x.amount||0),0);
+  const rows=[
+    ...ds.map(x=>({type:"ជំពាក់",date:x.debt_date,item:x.item,amount:Number(x.amount||0),note:x.note||""})),
+    ...ps.map(x=>({type:"សងប្រាក់",date:x.payment_date,item:"ការសងប្រាក់",amount:-Number(x.amount||0),note:x.note||""}))
+  ].sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const st=getSettings();
+  const shopName=st.shopName||"ហាង ពៅមារី";
+  const btn=$("downloadHistoryPdfBtn");
+  if(btn){btn.disabled=true;btn.textContent="⏳ កំពុងបង្កើត..."}
+
+  const sheet=document.createElement("div");
+  sheet.id="pdfExportSheet";
+  sheet.style.cssText="position:fixed;left:0;top:0;width:794px;min-height:1123px;box-sizing:border-box;padding:42px;background:#fff;color:#172033;z-index:2147483647;font-family:Arial,'Noto Sans Khmer',sans-serif;line-height:1.55;display:block;opacity:1;visibility:visible;overflow:visible";
+  sheet.innerHTML=`
+    <div style="font-size:28px;font-weight:800;margin-bottom:4px">${esc(shopName)}</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:18px">ប្រវត្តិអ្នកជំពាក់</div>
+    <div style="font-size:16px;margin-bottom:16px">
+      <b>ឈ្មោះ៖</b> ${esc(p.name)}${p.phone?`<br><b>ទូរស័ព្ទ៖</b> ${esc(p.phone)}`:""}<br>
+      <b>កាលបរិច្ឆេទ៖</b> ${esc(today())}
+    </div>
+    <div style="border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:14px 0;margin-bottom:18px;display:flex;gap:28px;font-size:15px">
+      <div><span>ជំពាក់សរុប</span><br><b>${money(totalDebt)}</b></div>
+      <div><span>បានសង</span><br><b>${money(totalPaid)}</b></div>
+      <div><span>នៅសល់</span><br><b>${money(Math.max(0,totalDebt-totalPaid))}</b></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
+      <thead><tr>
+        <th style="width:18%;text-align:left;border-bottom:1px solid #999;padding:7px">កាលបរិច្ឆេទ</th>
+        <th style="width:25%;text-align:left;border-bottom:1px solid #999;padding:7px">ប្រភេទ / មុខទំនិញ</th>
+        <th style="width:37%;text-align:left;border-bottom:1px solid #999;padding:7px">ចំណាំ</th>
+        <th style="width:20%;text-align:right;border-bottom:1px solid #999;padding:7px">ចំនួន</th>
+      </tr></thead>
+      <tbody>${rows.length?rows.map(r=>`<tr>
+        <td style="padding:7px;border-bottom:1px solid #eee;vertical-align:top">${esc(r.date||"")}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee;vertical-align:top">${esc(r.type)}${r.item?` • ${esc(r.item)}`:""}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee;vertical-align:top">${esc(r.note||"")}</td>
+        <td style="padding:7px;border-bottom:1px solid #eee;text-align:right;vertical-align:top;font-weight:700">${r.amount>=0?"+":"-"}${money(Math.abs(r.amount))}</td>
+      </tr>`).join(""):`<tr><td colspan="4" style="padding:12px;text-align:center">មិនទាន់មានប្រវត្តិទេ</td></tr>`}</tbody>
+    </table>
+    <div style="margin-top:22px;color:#777;font-size:11px">បង្កើតពី Debt Book • ${esc(shopName)}</div>`;
+
+  document.body.appendChild(sheet);
+  try{
+    if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+    await new Promise(r=>setTimeout(r,350));
+    await html2pdf().set({
+      margin:0,
+      filename:`history-${String(p.name||"customer").replace(/[^a-zA-Z0-9_-]/g,"_")}.pdf`,
+      image:{type:"jpeg",quality:0.98},
+      html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0},
+      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+      pagebreak:{mode:["css","legacy"]}
+    }).from(sheet).save();
+    toast("បានទាញយក PDF រួចរាល់ ✓");
+  }catch(e){
+    console.error("PDF ERROR",e);
+    toast("បង្កើត PDF មិនបាន",false);
+  }finally{
+    sheet.remove();
+    if(btn){btn.disabled=false;btn.textContent="📄 PDF"}
+  }
 }
+
+$("downloadHistoryPdfBtn").onclick=downloadHistoryPdf;
 
 function editTransaction(id,type){
   const x=type==="debt"?debts.find(x=>x.id===id):payments.find(x=>x.id===id);if(!x)return;
