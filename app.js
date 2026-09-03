@@ -171,7 +171,7 @@ async function downloadHistoryPdf(){
       ${rows.length?rows.map(x=>`<tr><td>${esc(x.date||"")}</td><td>${x.type==="debt"?`ជំពាក់ • ${esc(x.item||"")}`:"សងប្រាក់"}</td><td>${esc(x.note||"")}</td><td class="pdf-amount">${x.type==="debt"?"+":"-"}${money(x.amount)}</td></tr>`).join(""):`<tr><td colspan="4">មិនទាន់មានប្រវត្តិទេ</td></tr>`}
     </tbody></table>
     <div class="pdf-footer">បង្កើតពី Debt Book • ${esc(shopName)}</div>`;
-  sheet.style.position="fixed";sheet.style.left="0";sheet.style.top="0";sheet.style.width="794px";sheet.style.boxSizing="border-box";sheet.style.background="#fff";sheet.style.padding="40px";sheet.style.zIndex="999999";sheet.style.pointerEvents="none";
+  sheet.style.position="absolute";sheet.style.left="0";sheet.style.top="0";sheet.style.width="794px";sheet.style.background="#fff";sheet.style.padding="40px";sheet.style.zIndex="99999";sheet.style.boxSizing="border-box";
   document.body.appendChild(sheet);
   try{
     await html2pdf().set({margin:0,filename:`history-${p.name.replace(/[^\w\u1780-\u17FF-]/g,"_")}.pdf`,image:{type:"jpeg",quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(sheet).save();
