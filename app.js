@@ -151,7 +151,8 @@ function history(id){
 
 async function downloadHistoryPdf(){
   if(!currentHistoryPersonId){toast("សូមបើក History មុន",false);return}
-  if(typeof html2pdf !== "function"){toast("មិនអាចផ្ទុក PDF បាន។ សូមពិនិត្យ Internet",false);return}
+  if(typeof html2pdf !== "function"){toast("PDF library មិនទាន់ផ្ទុក។ សូមបើក Internet ហើយ Refresh",false);return}
+
   const p=people.find(x=>x.id===currentHistoryPersonId);
   if(!p)return;
   const rows=getHistoryRows(p.id);
@@ -159,27 +160,72 @@ async function downloadHistoryPdf(){
   const st=getSettings();
   const shopName=st.shopName||"ហាង ពៅមារី";
   const btn=$("downloadHistoryPdfBtn");
-  btn.disabled=true;btn.textContent="⏳ កំពុងបង្កើត...";
+  btn.disabled=true;
+  btn.textContent="⏳ កំពុងបង្កើត...";
+
+  // IMPORTANT: html2canvas/iPhone Safari may create a blank PDF when the
+  // source element is positioned far outside the viewport. Keep it on-screen
+  // while rendering, then remove it immediately after the PDF is saved.
   const sheet=document.createElement("div");
   sheet.className="pdf-sheet";
   sheet.innerHTML=`
     <div class="pdf-title">${esc(shopName)}</div>
     <div class="pdf-subtitle">ប្រវត្តិអ្នកជំពាក់</div>
     <div class="pdf-info"><b>ឈ្មោះ៖</b> ${esc(p.name)}${p.phone?`<br><b>ទូរស័ព្ទ៖</b> ${esc(p.phone)}`:""}<br><b>កាលបរិច្ឆេទ៖</b> ${esc(today())}</div>
-    <div class="pdf-summary"><div><span>ជំពាក់សរុប</span><b>${money(t.d)}</b></div><div><span>បានសង</span><b>${money(t.p)}</b></div><div><span>នៅសល់</span><b>${money(t.r)}</b></div></div>
+    <div class="pdf-summary">
+      <div><span>ជំពាក់សរុប</span><b>${money(t.d)}</b></div>
+      <div><span>បានសង</span><b>${money(t.p)}</b></div>
+      <div><span>នៅសល់</span><b>${money(t.r)}</b></div>
+    </div>
     <table><thead><tr><th>កាលបរិច្ឆេទ</th><th>ប្រភេទ / មុខទំនិញ</th><th>ចំណាំ</th><th>ចំនួន</th></tr></thead><tbody>
       ${rows.length?rows.map(x=>`<tr><td>${esc(x.date||"")}</td><td>${x.type==="debt"?`ជំពាក់ • ${esc(x.item||"")}`:"សងប្រាក់"}</td><td>${esc(x.note||"")}</td><td class="pdf-amount">${x.type==="debt"?"+":"-"}${money(x.amount)}</td></tr>`).join(""):`<tr><td colspan="4">មិនទាន់មានប្រវត្តិទេ</td></tr>`}
     </tbody></table>
     <div class="pdf-footer">បង្កើតពី Debt Book • ${esc(shopName)}</div>`;
-  sheet.style.position="absolute";sheet.style.left="0";sheet.style.top="0";sheet.style.width="794px";sheet.style.minHeight="1123px";sheet.style.boxSizing="border-box";sheet.style.background="#fff";sheet.style.padding="40px";sheet.style.zIndex="2147483647";sheet.style.opacity="1";sheet.style.pointerEvents="none";
+
+  // Do NOT use left:-100000px / z-index:-1 here. Those are the main cause
+  // of the blank one-page PDF on iPhone/Safari.
+  Object.assign(sheet.style,{
+    position:"fixed", left:"0", top:"0", width:"794px", minHeight:"1123px",
+    boxSizing:"border-box", background:"#fff", padding:"40px",
+    zIndex:"2147483647", opacity:"1", visibility:"visible",
+    pointerEvents:"none", overflow:"visible"
+  });
   document.body.appendChild(sheet);
+
   try{
     if(document.fonts && document.fonts.ready) await document.fonts.ready;
-    await new Promise(r=>setTimeout(r,150));
-    await html2pdf().set({margin:0,filename:`history-${p.name.replace(/[^\w\u1780-\u17FF-]/g,"_")}.pdf`,image:{type:"jpeg",quality:0.98},html2canvas:{scale:1.5,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,windowWidth:794},jsPDF:{unit:"mm",format:"a4",orientation:"portrait",compress:true},pagebreak:{mode:["css","legacy"]}}).from(sheet).save();
+    // Give Safari one paint cycle so the DOM is actually laid out before capture.
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
+    const safeName=String(p.name||"customer").replace(/[^a-zA-Z0-9\u1780-\u17FF_-]/g,"_");
+    await html2pdf().set({
+      margin:0,
+      filename:`history-${safeName}.pdf`,
+      image:{type:"jpeg",quality:0.98},
+      html2canvas:{
+        scale:2,
+        useCORS:true,
+        allowTaint:false,
+        backgroundColor:"#ffffff",
+        logging:false,
+        scrollX:0,
+        scrollY:0,
+        windowWidth:794,
+        windowHeight:1123
+      },
+      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+      pagebreak:{mode:["css","legacy"]}
+    }).from(sheet).save();
+
     toast("បានទាញយក PDF រួចរាល់ ✓");
-  }catch(err){console.error(err);toast("បង្កើត PDF មិនបាន",false)}
-  finally{sheet.remove();btn.disabled=false;btn.textContent="📄 PDF"}
+  }catch(err){
+    console.error("PDF ERROR:",err);
+    toast("PDF មិនអាចបង្កើតបាន។ សូម Refresh ហើយសាកម្ដងទៀត",false);
+  }finally{
+    sheet.remove();
+    btn.disabled=false;
+    btn.textContent="📄 PDF";
+  }
 }
 
 $("downloadHistoryPdfBtn").onclick=downloadHistoryPdf;
