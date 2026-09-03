@@ -2,58 +2,120 @@
 <html lang="km">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>បញ្ជីជំពាក់ • ចាប់ហួយ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1769e0" />
+  <title>ហាង ពៅមារី • បញ្ជីជំពាក់</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="./add-icon.png">
+  <link rel="apple-touch-icon" href="./add-icon.png">
 </head>
 <body>
   <div id="toast"></div>
 
   <section id="loginScreen" class="login-screen">
     <div class="login-card">
-      <div class="logo">៛</div>
-      <h1>បញ្ជីជំពាក់</h1>
+      <div class="login-photo"></div>
+      <div class="brand-row">
+        <div class="logo">៛</div>
+        <div><div class="eyebrow">DEBT BOOK</div><div class="brand-name">ហាង ពៅមារី</div></div>
+      </div>
+      <h1>បញ្ជីអ្នកជំពាក់</h1>
       <p>គ្រប់គ្រងអ្នកជំពាក់ និងប្រវត្តិការជំពាក់បានងាយស្រួល</p>
       <form id="loginForm">
         <label>Email</label>
-        <input id="email" type="email" placeholder="your@email.com" required>
+        <input id="email" type="email" placeholder="your@email.com" autocomplete="username" required>
         <label>Password</label>
-        <input id="password" type="password" placeholder="••••••••" required>
+        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
         <button class="primary full" type="submit">ចូលប្រើ</button>
       </form>
-      <small>ប្រើគណនីដែលបានបង្កើតនៅ Supabase Auth</small>
+      <small>Login នឹងរក្សាទុកជាប់នៅលើឧបករណ៍នេះ</small>
     </div>
   </section>
 
   <main id="app" class="app hidden">
-    <header class="topbar">
-      <div>
-        <div class="eyebrow">ចាប់ហួយ • DEBT BOOK</div>
-        <h1>បញ្ជីអ្នកជំពាក់</h1>
+    <header class="hero">
+      <div class="hero-top">
+        <button id="settingsBtn" class="hero-icon" title="ការកំណត់">☰</button>
+        <button id="logoutBtn" class="hero-icon" title="ចាកចេញ">⇥</button>
       </div>
-      <button id="logoutBtn" class="ghost">ចាកចេញ</button>
+      <div class="shop-profile" aria-label="ហាង ពៅមារី"></div>
+      <div class="hero-copy">
+        <div class="eyebrow">ហាង • DEBT BOOK</div>
+        <h1 id="shopNameDisplay">ហាង ពៅមារី</h1>
+        <p>បញ្ជីអ្នកជំពាក់ និងប្រវត្តិការជំពាក់</p>
+      </div>
     </header>
 
     <section class="stats">
-      <div class="stat"><span>អ្នកជំពាក់</span><strong id="peopleCount">0</strong></div>
-      <div class="stat"><span>សរុបជំពាក់</span><strong id="totalDebt">0៛</strong></div>
-      <div class="stat"><span>បានសង</span><strong id="totalPaid">0៛</strong></div>
-      <div class="stat highlight"><span>នៅសល់</span><strong id="totalRemain">0៛</strong></div>
+      <div class="stat"><div class="stat-top"><div class="stat-icon">👥</div><div><span>អ្នកជំពាក់</span><strong id="peopleCount">0</strong></div></div></div>
+      <div class="stat"><div class="stat-top"><div class="stat-icon">💰</div><div><span>សរុបជំពាក់</span><strong id="totalDebt">0៛</strong></div></div></div>
+      <div class="stat"><div class="stat-top"><div class="stat-icon">✓</div><div><span>បានសង</span><strong id="totalPaid">0៛</strong></div></div></div>
+      <div class="stat highlight"><div class="stat-top"><div class="stat-icon">៛</div><div><span>នៅសល់</span><strong id="totalRemain">0៛</strong></div></div></div>
     </section>
 
     <section class="toolbar">
-      <div class="search">
-        <span>⌕</span><input id="searchInput" placeholder="ស្វែងរកឈ្មោះ ឬលេខទូរស័ព្ទ...">
-      </div>
+      <div class="search"><span>⌕</span><input id="searchInput" placeholder="ស្វែងរកឈ្មោះ ឬលេខទូរស័ព្ទ..." autocomplete="off"></div>
       <button id="addPersonBtn" class="primary">＋ អ្នកជំពាក់ថ្មី</button>
     </section>
 
+    <div class="section-title"><h2>អ្នកជំពាក់</h2><span id="peopleLabel">បញ្ជីទាំងអស់</span></div>
     <section id="peopleList" class="people-list"></section>
   </main>
 
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-item active" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})"><b>⌂</b>ផ្ទាំងដើម</button>
+    <button class="nav-item" type="button" onclick="document.getElementById('searchInput').focus()"><b>◎</b>អ្នកជំពាក់</button>
+    <button class="nav-item" type="button" onclick="document.getElementById('addPersonBtn').click()"><b>▣</b>បញ្ចូល</button>
+    <button class="nav-item" type="button" onclick="document.getElementById('peopleList').scrollIntoView({behavior:'smooth'})"><b>◷</b>ប្រវត្តិ</button>
+    <button id="settingsNavBtn" class="nav-item" type="button"><b>⚙</b>ការកំណត់</button>
+    </nav>
+
+  <dialog id="settingsDialog">
+    <div class="modal settings-modal">
+      <div class="modal-head">
+        <div><span class="eyebrow">SETTINGS</span><h2>ការកំណត់</h2></div>
+        <button type="button" class="icon-btn" data-close>×</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label"><b>🏪 ឈ្មោះហាង</b><span>ប្តូរឈ្មោះដែលបង្ហាញលើ App</span></div>
+        <input id="shopNameInput" type="text" maxlength="60" placeholder="ឧ. ហាង ពៅមារី">
+        <button id="saveShopNameBtn" class="primary full" type="button">រក្សាទុកឈ្មោះហាង</button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label"><b>🖼️ Background</b><span>ជ្រើសផ្ទៃ App ឬដាក់រូបផ្ទាល់ខ្លួន</span></div>
+        <div class="background-grid">
+          <button class="bg-option active" type="button" data-bg="shop">
+            <span class="bg-thumb bg-shop"></span><b>រូបហាង</b>
+          </button>
+          <button class="bg-option" type="button" data-bg="blue">
+            <span class="bg-thumb bg-blue"></span><b>ខៀវ</b>
+          </button>
+          <button class="bg-option" type="button" data-bg="dark">
+            <span class="bg-thumb bg-dark"></span><b>ងងឹត</b>
+          </button>
+          <button class="bg-option" type="button" data-bg="light">
+            <span class="bg-thumb bg-light"></span><b>ស</b>
+          </button>
+        </div>
+        <label class="upload-bg">📷 ប្តូរជារូបផ្ទាល់ខ្លួន
+          <input id="backgroundFile" type="file" accept="image/*">
+        </label>
+        <button id="resetBackgroundBtn" class="ghost full" type="button">↺ ប្រើរូបហាងវិញ</button>
+      </div>
+
+      <div class="settings-section settings-list">
+        <button id="refreshDataBtn" class="settings-action" type="button"><span>🔄</span><div><b>Refresh ទិន្នន័យ</b><small>ទាញទិន្នន័យថ្មីពី Supabase</small></div></button>
+        <button id="logoutSettingsBtn" class="settings-action danger" type="button"><span>⇥</span><div><b>Logout</b><small>ចាកចេញពីគណនីនៅលើឧបករណ៍នេះ</small></div></button>
+      </div>
+
+      <p class="settings-note">🔐 Login ត្រូវបានរក្សាទុកជាប់ ដោយប្រើ Session របស់ Supabase។</p>
+    </div>
+  </dialog>
   <dialog id="personDialog">
     <form id="personForm" class="modal">
       <div class="modal-head"><div><span class="eyebrow">CUSTOMER</span><h2 id="personModalTitle">អ្នកជំពាក់ថ្មី</h2></div><button type="button" class="icon-btn" data-close>×</button></div>
@@ -71,7 +133,7 @@
       <input type="hidden" id="debtPersonId">
       <p id="debtPersonName" class="modal-person"></p>
       <label>មុខទំនិញ *</label><input id="debtItem" required placeholder="ឧ. អង្ករ 5kg">
-      <label>ចំនួនទឹកប្រាក់ (៛) *</label><input id="debtAmount" required type="number" min="0" step="1" placeholder="10000">
+      <label>ចំនួនទឹកប្រាក់ (៛) *</label><input id="debtAmount" required type="number" min="1" step="1" inputmode="numeric" placeholder="10000">
       <label>ថ្ងៃជំពាក់</label><input id="debtDate" type="date">
       <label>ចំណាំ</label><input id="debtNote" placeholder="ជាជម្រើស">
       <button class="primary full" type="submit">＋ កត់ត្រាជំពាក់</button>
@@ -84,7 +146,7 @@
       <input type="hidden" id="paymentPersonId">
       <p id="paymentPersonName" class="modal-person"></p>
       <div class="remain-box">នៅសល់ <strong id="paymentRemain">0៛</strong></div>
-      <label>ចំនួនសង (៛) *</label><input id="paymentAmount" required type="number" min="1" step="1" placeholder="5000">
+      <label>ចំនួនសង (៛) *</label><input id="paymentAmount" required type="number" min="1" step="1" inputmode="numeric" placeholder="5000">
       <label>ថ្ងៃសង</label><input id="paymentDate" type="date">
       <label>ចំណាំ</label><input id="paymentNote" placeholder="ជាជម្រើស">
       <button class="primary full" type="submit">✓ កត់ត្រាការសង</button>
@@ -93,9 +155,29 @@
 
   <dialog id="historyDialog">
     <div class="modal wide">
-      <div class="modal-head"><div><span class="eyebrow">HISTORY</span><h2 id="historyTitle">ប្រវត្តិ</h2></div><button type="button" class="icon-btn" data-close>×</button></div>
+      <div class="modal-head"><div><span class="eyebrow">HISTORY</span><h2 id="historyTitle">ប្រវត្តិ</h2></div><div class="history-head-actions"><button type="button" id="downloadHistoryPdfBtn" class="btn blue">📄 PDF</button><button type="button" class="icon-btn" data-close>×</button></div></div>
       <div id="historyContent"></div>
     </div>
+  </dialog>
+
+  <dialog id="editTransactionDialog">
+    <form id="editTransactionForm" class="modal">
+      <div class="modal-head">
+        <div><span class="eyebrow">EDIT HISTORY</span><h2 id="editTransactionTitle">កែប្រវត្តិ</h2></div>
+        <button type="button" class="icon-btn" data-close>×</button>
+      </div>
+      <input type="hidden" id="editTransactionId">
+      <input type="hidden" id="editTransactionType">
+      <p id="editTransactionPerson" class="modal-person"></p>
+      <div id="editDebtItemWrap">
+        <label>មុខទំនិញ *</label><input id="editDebtItem" placeholder="ឧ. អង្ករ 5kg">
+      </div>
+      <label>ចំនួនទឹកប្រាក់ (៛) *</label>
+      <input id="editTransactionAmount" required type="number" min="1" step="1" inputmode="numeric" placeholder="10000">
+      <label id="editTransactionDateLabel">ថ្ងៃ</label><input id="editTransactionDate" type="date">
+      <label>ចំណាំ</label><input id="editTransactionNote" placeholder="ជាជម្រើស">
+      <button class="primary full" type="submit">រក្សាទុកការកែប្រែ</button>
+    </form>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
